@@ -218,7 +218,7 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const BG = new THREE.Color('#050607');
 const scene = new THREE.Scene();
 scene.background = BG;
-scene.fog = new THREE.Fog(BG, 34, 70);
+scene.fog = new THREE.Fog(BG, 48, 95);
 const pmrem = new THREE.PMREMGenerator(renderer);
 scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
 
@@ -784,13 +784,14 @@ function layout() {
   bloom.resolution.set(w / 2, h / 2);
   portrait = PORTRAIT;
   const narrowW = w < 860;
-  const fitW = portrait ? 15.5 : narrowW ? 26.5 : 27 * w / Math.max(600, w - 360), fitD = portrait ? 25 : 15.5;
+  // fitD leaves room behind the board for the floating software windows
+  const fitW = portrait ? 15.5 : narrowW ? 26.5 : 27 * w / Math.max(600, w - 360), fitD = portrait ? 34 : 20;
   const vfov = THREE.MathUtils.degToRad(camera.fov);
   const hfov = 2 * Math.atan(Math.tan(vfov / 2) * camera.aspect);
   const narrow = w < 860;
   const dist = Math.max((fitW / 2) / Math.tan(hfov / 2), (fitD / 2) / Math.tan(vfov / 2) * 0.82) * (narrow ? 1.02 : 1.0);
   const dir = new THREE.Vector3(0, 1.25, 0.95).normalize();
-  home.target.set(narrow ? 0 : -(125 / w) * fitW, 0, portrait ? 0.4 : 0.3);
+  home.target.set(narrow ? 0 : -(125 / w) * fitW, portrait ? 0.6 : 0.8, portrait ? -3.6 : -1.6);
   home.pos.copy(home.target).addScaledVector(dir, dist);
   controls.minDistance = dist * 0.32;
   controls.maxDistance = dist * 1.3;
@@ -810,10 +811,202 @@ function focusItem(it) {
   const target = p.clone();
   if (panelOpen) target.addScaledVector(right, 1.6);
   else target.z += 2.2;
-  const pos = target.clone().add(new THREE.Vector3(0, 10.5, 8.6).multiplyScalar(innerWidth < 860 ? 1.3 : 1));
+  const view = it.win ? new THREE.Vector3(0, 2.6, 10) : new THREE.Vector3(0, 10.5, 8.6);
+  const pos = target.clone().add(view.multiplyScalar(innerWidth < 860 ? 1.3 : 1));
   flyTo(pos, target);
 }
 function goHome() { flyTo(home.pos, home.target, 1.2); }
+
+/* ======================================================================
+   The software layer: live windows floating above the board,
+   each wired to its chip by a data beam
+   ====================================================================== */
+const softWins = [];
+const zeroImg = new Image();
+zeroImg.src = 'assets/img/zero-hour.png';
+
+function winChrome(c, W, H, title) {
+  c.clearRect(0, 0, W, H);
+  c.fillStyle = '#0a100f';
+  c.beginPath(); c.roundRect(0, 0, W, H, 26); c.fill();
+  c.fillStyle = '#131c1a';
+  c.beginPath(); c.roundRect(0, 0, W, 64, [26, 26, 0, 0]); c.fill();
+  ['#ff6b5f', '#ffc24b', '#3ddc84'].forEach((col, i) => { c.fillStyle = col; c.beginPath(); c.arc(36 + i * 30, 32, 9, 0, 7); c.fill(); });
+  c.fillStyle = '#8f9c96'; c.font = `500 24px ${MONO}`; c.textAlign = 'center';
+  c.fillText(title, W / 2, 40); c.textAlign = 'left';
+  return 64;
+}
+
+const WINDOWS = [
+  {
+    key: 'browser', title: 'team-20-1.onrender.com', link: 'zero-hour', note: 'Zero Hour, live in the browser',
+    at: { x: -9.3, z: -8.9 }, portraitAt: { x: -3.4, z: -14.4 },
+    draw(c, W, H, top) {
+      c.fillStyle = '#131c1a'; c.beginPath(); c.roundRect(24, top + 14, W - 48, 44, 22); c.fill();
+      c.fillStyle = '#a1ffcb'; c.font = `400 22px ${MONO}`; c.fillText('https://team-20-1.onrender.com', 48, top + 44);
+      const y0 = top + 74, h = H - y0 - 20;
+      if (zeroImg.complete && zeroImg.naturalWidth) {
+        const s = Math.max((W - 48) / zeroImg.naturalWidth, h / zeroImg.naturalHeight);
+        c.save(); c.beginPath(); c.roundRect(24, y0, W - 48, h, 12); c.clip();
+        c.drawImage(zeroImg, 24, y0, zeroImg.naturalWidth * s, zeroImg.naturalHeight * s);
+        c.restore();
+      }
+      c.fillStyle = '#d9a654'; c.beginPath(); c.roundRect(44, H - 82, 330, 44, 22); c.fill();
+      c.fillStyle = '#1a1006'; c.font = `700 22px ${MONO}`; c.fillText('★ 2nd · StrathHack26', 64, H - 52);
+    },
+  },
+  {
+    key: 'voice', title: 'friday — voice loop', link: 'friday', note: 'F.R.I.D.A.Y. voice pipeline',
+    at: { x: -3.1, z: -9.4 }, live: true,
+    draw(c, W, H, top, t) {
+      const stages = [['VAD', 'WebRTC'], ['STT', 'faster-whisper'], ['LLM', 'tools via MCP'], ['TTS', 'Piper']];
+      const bw = 190, gap = (W - 48 - bw * 4) / 3, y = top + 60, hot = Math.floor(t * 1.6) % 4;
+      stages.forEach(([a, b], i) => {
+        const x = 24 + i * (bw + gap);
+        c.fillStyle = i === hot ? '#a1ffcb' : '#131c1a';
+        c.beginPath(); c.roundRect(x, y, bw, 120, 18); c.fill();
+        c.fillStyle = i === hot ? '#04160d' : '#e9f1ec'; c.font = `700 40px ${SANS}`; c.fillText(a, x + 22, y + 60);
+        c.fillStyle = i === hot ? '#04160d' : '#8f9c96'; c.font = `400 19px ${MONO}`; c.fillText(b, x + 22, y + 96);
+        if (i < 3) { c.fillStyle = '#4f7d66'; c.fillText('→', x + bw + gap / 2 - 8, y + 66); }
+      });
+      // a live waveform: you speak, then it answers
+      const wy = y + 250;
+      c.strokeStyle = '#a1ffcb'; c.lineWidth = 4; c.beginPath();
+      for (let x = 24; x < W - 24; x += 4) {
+        const u = x / W, env = Math.max(0, Math.sin((u * 2.2 - t * 0.35) * Math.PI));
+        const v = Math.sin(x * 0.09 + t * 9) * Math.sin(x * 0.023 + t * 3) * 70 * env;
+        x === 24 ? c.moveTo(x, wy + v) : c.lineTo(x, wy + v);
+      }
+      c.stroke();
+      c.fillStyle = '#e9f1ec'; c.font = `700 34px ${SANS}`; c.fillText('first sound back < 1 s', 24, H - 40);
+      c.fillStyle = '#8f9c96'; c.font = `400 20px ${MONO}`; c.textAlign = 'right'; c.fillText('17/17 evals', W - 28, H - 44); c.textAlign = 'left';
+    },
+  },
+  {
+    key: 'ci', title: 'github actions — all checks', link: 'about', note: 'CI on every push, across projects',
+    at: { x: 3.1, z: -9.4 }, live: true,
+    draw(c, W, H, top, t) {
+      const rows = [
+        ['zero-hour', 'node --test', '360+ tests'],
+        ['duck-run', 'tests + build', '155 tests'],
+        ['mini-redis', 'ASan · UBSan · valgrind', '111 tests'],
+        ['trace-analyzer', 'pytest', 'every push'],
+        ['find-my-recipes', 'Django tests', 'model · view'],
+      ];
+      const cycle = t % 7;
+      rows.forEach(([repo, job, n], i) => {
+        const y = top + 34 + i * 82, done = cycle > 0.6 + i * 0.8;
+        c.fillStyle = '#131c1a'; c.beginPath(); c.roundRect(24, y, W - 48, 66, 14); c.fill();
+        if (done) {
+          c.fillStyle = '#3ddc84'; c.beginPath(); c.arc(62, y + 33, 16, 0, 7); c.fill();
+          c.strokeStyle = '#04160d'; c.lineWidth = 4; c.beginPath(); c.moveTo(54, y + 33); c.lineTo(60, y + 40); c.lineTo(71, y + 26); c.stroke();
+        } else {
+          c.strokeStyle = '#ffc24b'; c.lineWidth = 4; c.beginPath(); c.arc(62, y + 33, 14, t * 6, t * 6 + 4.2); c.stroke();
+        }
+        c.fillStyle = '#e9f1ec'; c.font = `700 25px ${MONO}`; c.fillText(repo, 96, y + 30);
+        c.fillStyle = '#8f9c96'; c.font = `400 19px ${MONO}`; c.fillText(job, 96, y + 54);
+        c.textAlign = 'right'; c.fillStyle = done ? '#a1ffcb' : '#ffc24b'; c.font = `400 21px ${MONO}`;
+        c.fillText(done ? n : 'running…', W - 44, y + 42); c.textAlign = 'left';
+      });
+    },
+  },
+  {
+    key: 'term', title: 'tejas@linux: ~/mini-redis', link: 'mini-redis', note: 'mini-redis, benchmarked in the terminal',
+    at: { x: 9.3, z: -8.9 }, portraitAt: { x: 3.4, z: -14.4 }, live: true,
+    lines: [
+      ['$ ', 'redis-benchmark -t get,set -c 10000 -q'],
+      ['', 'SET  ≈ Redis 8 throughput'],
+      ['', 'GET  ≈ Redis 8 throughput'],
+      ['$ ', 'perf stat -e instructions ./mini-redis'],
+      ['', 'instr/request   2,788 → 1,668'],
+      ['$ ', 'make test ASAN=1'],
+      ['', '39 unit · 72 integration · fuzz ok'],
+      ['$ ', 'kill -9 $(pidof mini-redis) && ./mini-redis'],
+      ['', 'AOF replayed · 0 keys lost'],
+    ],
+    draw(c, W, H, top, t) {
+      const total = this.lines.reduce((s, [a, b]) => s + a.length + b.length, 0);
+      let budget = Math.floor(t * 34) % (total + 90);
+      c.font = `400 25px ${MONO}`;
+      let y = top + 50, lastX = 28;
+      for (const [p, txt] of this.lines) {
+        if (budget <= 0) break;
+        const full = p + txt, shown = full.slice(0, budget); budget -= full.length;
+        c.fillStyle = p ? '#a1ffcb' : '#c9d0cc';
+        c.fillText(shown, 28, y);
+        lastX = 28 + c.measureText(shown).width;
+        if (budget > 0) y += 40;
+      }
+      if (Math.floor(t * 2) % 2) { c.fillStyle = '#a1ffcb'; c.fillRect(lastX + 4, y - 24, 14, 30); }
+    },
+  },
+];
+
+function addSoftware() {
+  const list = PORTRAIT ? WINDOWS.filter((w) => w.portraitAt) : WINDOWS;
+  list.forEach((def, i) => {
+    const w = PORTRAIT ? 6.4 : 6.0, h = w * 0.62, CW = 1060, CH = 660;
+    const cv = document.createElement('canvas'); cv.width = CW; cv.height = CH;
+    const ctx = cv.getContext('2d');
+    const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = MAX_ANISO;
+    const screen = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: tex, transparent: true, toneMapped: false, fog: false }));
+    const halo = new THREE.Mesh(new THREE.PlaneGeometry(w + 0.35, h + 0.35), M.glow());
+    halo.position.z = -0.02;
+    const lift = new THREE.Group(); lift.add(halo, screen);
+    const bob = new THREE.Group(); bob.add(lift);
+    const g = new THREE.Group(); g.add(bob);
+    const at = PORTRAIT ? def.portraitAt : def.at;
+    g.position.set(at.x, 3.3, at.z);
+    tilt.add(g);
+    g.lookAt(home.pos.x * 0.15 + at.x * 0.85, home.pos.y, home.pos.z);   // face the viewer, a little splayed
+
+    // the data beam down to its chip (or the CPU)
+    const chipIt = def.link === 'about' ? items.find((x) => x.kind === 'about') : items.find((x) => x.project?.id === def.link);
+    const to = chipIt.group.position.clone().setY(0.5);
+    const from = new THREE.Vector3(0, -h / 2, 0).applyQuaternion(g.quaternion).add(g.position);
+    const mid = from.clone().lerp(to, 0.5).add(new THREE.Vector3(0, 1.2, 0));
+    const curve = new THREE.QuadraticBezierCurve3(to, mid, from);
+    const beam = new THREE.Mesh(new THREE.TubeGeometry(curve, 40, 0.025, 6, false), M.glow());
+    beam.material.opacity = 0.35;
+    tilt.add(beam);
+    const packets = [0, 1, 2].map(() => {
+      const m = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.7, 3.2, 1.9) }));
+      tilt.add(m); return m;
+    });
+
+    const win = { def, ctx, tex, CW, CH, g, bob, curve, packets, beam, phase: i * 1.3, dirty: true };
+    softWins.push(win);
+    renderWin(win, 0);
+    const project = PROJECTS.find((p) => p.id === def.link);
+    items.push({
+      group: g, lift, body: screen, pad: halo, win: true,
+      kind: project ? 'project' : 'about', project, title: project ? project.name : 'Tejas Kaushik', note: def.note,
+    });
+  });
+  zeroImg.onload = () => softWins.forEach((w) => renderWin(w, 0));
+}
+function renderWin(win, t) {
+  const top = winChrome(win.ctx, win.CW, win.CH, win.def.title);
+  win.def.draw.call(win.def, win.ctx, win.CW, win.CH, top, t);
+  win.tex.needsUpdate = true;
+}
+let softClock = 0;
+function softwareTick(dt, now) {
+  softClock += dt;
+  const redraw = softClock > 1 / 15;
+  softWins.forEach((w, i) => {
+    w.bob.position.y = motionFull ? Math.sin(now / 1000 * 0.9 + w.phase) * 0.12 : 0;
+    if (redraw && w.def.live) renderWin(w, now / 1000 * knob.value);
+    w.packets.forEach((p, k) => {
+      const u = ((now / 1000) * 0.35 * knob.value + k / 3 + i * 0.17) % 1;
+      w.curve.getPoint(u, p.position);
+      p.visible = booted;
+    });
+    const hot = hovered?.win && hovered.group === w.g || focused?.group === w.g;
+    w.beam.material.opacity += ((hot ? 1 : 0.3) - w.beam.material.opacity) * 0.1;
+  });
+  if (redraw) softClock = 0;
+}
 
 /* ======================================================================
    Pointer: hover, click, knob drag, parallax
@@ -942,7 +1135,7 @@ function aboutHTML() {
     <p class="p-h">Record</p>
     <ul class="p-rows">${ABOUT.record.map(([a, b]) => `<li><span>${esc(a)}</span><span>${esc(b)}</span></li>`).join('')}</ul>
     <p class="p-lede" style="font-size:16px">${esc(ABOUT.intern)}</p>
-    <div class="p-links"><button type="button" data-open="contact">Get in touch</button><a class="alt" href="classic.html">Plain version</a></div>`;
+    <div class="p-links"><button type="button" data-open="contact">Get in touch</button></div>`;
 }
 function contactHTML() {
   return `
@@ -1201,6 +1394,7 @@ function frame() {
   // idle drift of the camera when nobody touches it
   if (motionFull && booted && !current && controls.enabled) controls.target.x += Math.sin(now / 4000) * 0.0008;
 
+  softwareTick(dt, now);
   controls.update();
   composer.render();
   requestAnimationFrame(frame);
@@ -1216,6 +1410,7 @@ async function start() {
   buildBoard();
   setClock(1);
   layout();
+  addSoftware();
   camera.position.copy(home.pos).add(new THREE.Vector3(0, 30, -6));
   controls.target.copy(home.target);
   camera.lookAt(home.target);
