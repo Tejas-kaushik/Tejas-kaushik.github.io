@@ -17,7 +17,7 @@ const $ = (s) => document.querySelector(s);
 const PROJECTS = [
   {
     id: 'zero-hour', name: 'Zero Hour', chip: 'ZERO HOUR', sub: 'NODE.JS · SSE', year: 2026, gold: true,
-    badge: '2nd place · StrathHack26', x: -8, z: -3.8, w: 3.0, d: 2.1,
+    badge: '2nd place · StrathHack26', tag: '2ND', x: -8, z: -3.8, w: 3.0, d: 2.1,
     kind: 'Multiplayer cyber-security game',
     lede: 'Teams defend a fictional energy company through an overnight cyber attack, answering timed security questions on their phones. 2nd place at StrathHack26 (ScottishPower challenge).',
     image: 'assets/img/zero-hour.png',
@@ -28,6 +28,20 @@ const PROJECTS = [
     ],
     tags: ['Node.js', 'Server-Sent Events', 'node:test', 'Zero dependencies'],
     links: [{ label: 'Live demo', href: 'https://team-20-1.onrender.com/' }, { label: 'Code', href: 'https://github.com/Tejas-kaushik/zero-hour', alt: true }],
+  },
+  {
+    id: 'clinicdrift', name: 'ClinicDrift', chip: 'CLINICDRIFT', sub: 'PYTHON · PYTORCH', year: 2026,
+    badge: 'OxHack 26', tag: 'OXHACK', x: 8, z: 3.9, w: 2.8, d: 1.8,
+    kind: 'Early warning for failing medical AI · OxHack 26',
+    lede: 'An eye-screening AI can quietly get worse at one clinic, from a wearing camera or a bad software update, and the expert grades that would show it arrive weeks late. ClinicDrift spots it from the scans alone and decides when to pull the AI for review. Built with a team of four for the HRT data challenge; I built the prediction and decision engine.',
+    image: 'assets/img/clinicdrift.png',
+    bullets: [
+      'A label-free catch-rate estimate and a drift score per clinic-week feed a belief that updates as late grades arrive, and a cost-based rule decides when to alarm.',
+      'Replayed 20 weeks at 10 simulated clinics over 9,500 real retinal scans: caught all 8 clinics that changed, with zero false alarms, in 100 of 100 redraws of the grades. Waiting for grades caught a median of 0.',
+      'Caught a faulty software update that watching drift alone never sees, and roughly halved the modelled cost (£210k against £489k).',
+    ],
+    tags: ['Python', 'PyTorch', 'Bayesian decisions', 'Backtesting', 'React', 'Three.js'],
+    links: [{ label: 'Code', href: 'https://github.com/ox-hack-26/oxhack26-surely-we-win-' }],
   },
   {
     id: 'duck-run', name: 'Duck Run', chip: 'DUCK RUN', sub: 'SUPABASE · CANVAS', year: 2026,
@@ -125,14 +139,18 @@ const PROJECTS = [
     links: [{ label: 'Code', href: 'https://github.com/HibaBaig/find_my_recipe_team_3A' }],
   },
   {
-    id: 'stramont', name: 'The Stramont', chip: 'STRAMONT', sub: 'CLIENT · WEB', year: 2026,
+    id: 'client-web', name: 'Client websites', chip: 'CLIENT WEB', sub: 'CBT · CAFÉS', year: 2026,
     x: -4, z: 4.6, w: 2.4, d: 1.6,
-    kind: 'Café website, freelance client work',
-    lede: 'Commissioned by a Glasgow café owner: a multi-page HTML, CSS and JavaScript site built to their brief, with an embedded OpenStreetMap location view.',
-    fig: ['1', 'real client, in Glasgow'],
-    bullets: ['Took a brief from a real business owner to a finished, multi-page site.'],
-    tags: ['HTML', 'CSS', 'JavaScript', 'OpenStreetMap'],
-    links: [],
+    kind: 'Websites for real businesses in Glasgow',
+    lede: 'As web developer for Content Book by Tee (CBT), a Glasgow content studio, I build the studio\'s own site and the websites it pitches to cafés, plus earlier freelance work for a Glasgow café owner.',
+    image: 'assets/img/client-web.jpg',
+    bullets: [
+      'Content Book by Tee: the public site, an enquiry API and a password-protected studio desk where the team moves each enquiry from new to won. Node 22 and Express, with node:sqlite on a disk or Upstash Redis on Vercel, signed-cookie sign-in, rate limiting and node --test.',
+      'Morning Rush (pictured): a website preview for a Shawlands café, built from the café\'s own hand lettering, drawings and photos, with a live sign that says whether it is open right now in Glasgow time.',
+      'The Stramont: a multi-page site commissioned by a Glasgow café owner, built to their brief, with an OpenStreetMap location view.',
+    ],
+    tags: ['Node.js', 'Express', 'SQLite', 'Vercel', 'HTML', 'CSS', 'JavaScript'],
+    links: [{ label: 'CBT site', href: 'https://official-cbt.vercel.app' }, { label: 'Morning Rush', href: 'https://tejas-kaushik.github.io/mrngrush/', alt: true }],
   },
 ];
 
@@ -140,6 +158,8 @@ const ABOUT = {
   lede: 'Third-year BEng Electronics and Software Engineering at the University of Glasgow. I build the whole path a signal takes: the analogue front end and the board, the firmware that samples it, the server it reaches and the tools that check every step.',
   facts: [['Based in', 'Glasgow, UK'], ['Studying', 'BEng (Hons) ESE, 2024 to 2028'], ['Looking for', 'Summer 2027 placement'], ['Work', 'Right to work in the UK']],
   record: [
+    ['Web Developer, Content Book by Tee (CBT)', '2026'],
+    ['ClinicDrift, OxHack 26: prediction and decision engine', '2026'],
     ['2nd place, StrathHack26', '2026'],
     ['Summer Engineering Intern, Technology Business Incubator, GEHU', '2026'],
     ['Brand Ambassador, Domino\'s: 5,000+ sign-ups in a day', '2025'],
@@ -152,7 +172,8 @@ const ABOUT = {
     ['Firmware', 'FreeRTOS on ESP32, ARM Cortex-M, PWM, ADC, interrupts, UART, SPI, I²C'],
     ['Systems', 'C17 on Linux, epoll and syscalls, gdb, valgrind, perf, ASan, UBSan'],
     ['Network', 'TCP/IP, WebSocket and HTTP servers, Server-Sent Events, realtime rooms'],
-    ['Application and tooling', 'Python, pytest, Node.js, React, Django, Git, GitHub Actions'],
+    ['Data and decisions', 'PyTorch models, drift detection, Bayesian updating, backtests over many redraws'],
+    ['Application and tooling', 'Python, pytest, Node.js, Express, React, Django, SQLite, Vercel, Git, GitHub Actions'],
   ],
   intern: 'At the incubator (summer 2026) I built a networked air-quality monitor with a live web dashboard, from breadboard to working demonstrator, and prototyped a 3D-printed 4-DOF robotic arm with its control firmware.',
 };
@@ -420,7 +441,7 @@ function chipTop(p, wPx, hPx) {
     c.fillText(p.sub, pad, H * 0.75);
     c.textAlign = 'right';
     c.font = `400 ${Math.round(H * 0.1)}px ${MONO}`;
-    c.fillText(p.badge ? '2ND · ' + p.year : String(p.year), W - pad, H * 0.9);
+    c.fillText(p.tag ? `${p.tag} · ${p.year}` : String(p.year), W - pad, H * 0.9);
   });
 }
 
@@ -663,7 +684,7 @@ function addConnectors() {
   occupied.push({ x: qu.x, z: qu.z, w: 1.6, d: 1.4 });
 
   // pin header for email
-  const hdr = new THREE.Group(); const qh = T(7.6, 3.5); hdr.position.set(qh.x, 0, qh.z);
+  const hdr = new THREE.Group(); const qh = T(10.4, 5.2); hdr.position.set(qh.x, 0, qh.z);
   const base = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.22, 0.52), M.black); base.position.y = 0.11; base.castShadow = true;
   const hl = new THREE.Group(); hl.add(base);
   const pins = new THREE.InstancedMesh(new THREE.BoxGeometry(0.06, 0.6, 0.06), M.gold, 12);
@@ -1314,6 +1335,7 @@ const LOG = [
   ['[ ok ] firmware (FreeRTOS) ........ 2 cores up', 'ok'],
   ['[ ok ] PID loop ................... 200 Hz', 'ok'],
   ['[ ok ] mini-redis ................. 1,668 instr/req', 'ok'],
+  ['[ ok ] clinicdrift ................ 8/8 failures caught', 'ok'],
   ['[ ok ] test suites ................ 360+ passing', 'ok'],
   ['[ ok ] network .................... TCP/IP · WebSocket · SSE', 'ok'],
   [`[ .. ] mounting ${PROJECTS.length} projects on the board`, 'dim'],
