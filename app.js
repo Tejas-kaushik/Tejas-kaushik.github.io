@@ -31,17 +31,18 @@ const PROJECTS = [
   },
   {
     id: 'clinicdrift', name: 'ClinicDrift', chip: 'CLINICDRIFT', sub: 'PYTHON · PYTORCH', year: 2026,
-    badge: 'OxHack 26', tag: 'OXHACK', x: 8, z: 3.9, w: 2.8, d: 1.8,
+    badge: 'Honourable Mention · OxHack 26', tag: 'OXHACK', x: 8, z: 3.9, w: 2.8, d: 1.8,
     kind: 'Early warning for failing medical AI · OxHack 26',
-    lede: 'An eye-screening AI can quietly get worse at one clinic, from a wearing camera or a bad software update, and the expert grades that would show it arrive weeks late. ClinicDrift spots it from the scans alone and decides when to pull the AI for review. Built with a team of four for the HRT data challenge; I built the prediction and decision engine.',
+    lede: 'An eye-screening AI can quietly get worse at one clinic, from a wearing camera or a bad software update, and the expert grades that would show it arrive weeks late. ClinicDrift spots it from the scans alone and decides when to pull the AI for review. Built with a team of four for the HRT data challenge, it won an Honourable Mention at OxHack 26; I built the prediction and decision engine and the 3D web app.',
     image: 'assets/img/clinicdrift.png',
     bullets: [
       'A label-free catch-rate estimate and a drift score per clinic-week feed a belief that updates as late grades arrive, and a cost-based rule decides when to alarm.',
       'Replayed 20 weeks at 10 simulated clinics over 9,500 real retinal scans: caught all 8 clinics that changed, with zero false alarms, in 100 of 100 redraws of the grades. Waiting for grades caught a median of 0.',
       'Caught a faulty software update that watching drift alone never sees, and roughly halved the modelled cost (£210k against £489k).',
+      'Built the web app in TypeScript, React and Three.js: a 3D globe of the clinics that plays the 20 weeks, so the story reads in fifteen seconds.',
     ],
-    tags: ['Python', 'PyTorch', 'Bayesian decisions', 'Backtesting', 'React', 'Three.js'],
-    links: [{ label: 'Code', href: 'https://github.com/ox-hack-26/oxhack26-surely-we-win-' }],
+    tags: ['Python', 'PyTorch', 'Bayesian decisions', 'Backtesting', 'TypeScript', 'React', 'Three.js'],
+    links: [{ label: 'Live demo', href: 'clinicdrift/' }, { label: 'Code', href: 'https://github.com/ox-hack-26/oxhack26-surely-we-win-', alt: true }],
   },
   {
     id: 'duck-run', name: 'Duck Run', chip: 'DUCK RUN', sub: 'SUPABASE · CANVAS', year: 2026,
@@ -159,7 +160,7 @@ const ABOUT = {
   facts: [['Based in', 'Glasgow, UK'], ['Studying', 'BEng (Hons) ESE, 2024 to 2028'], ['Looking for', 'Summer 2027 placement'], ['Work', 'Right to work in the UK']],
   record: [
     ['Web Developer, Content Book by Tee (CBT)', '2026'],
-    ['ClinicDrift, OxHack 26: prediction and decision engine', '2026'],
+    ['Honourable Mention, OxHack 26 (ClinicDrift)', '2026'],
     ['2nd place, StrathHack26', '2026'],
     ['Summer Engineering Intern, Technology Business Incubator, GEHU', '2026'],
     ['Brand Ambassador, Domino\'s: 5,000+ sign-ups in a day', '2025'],
